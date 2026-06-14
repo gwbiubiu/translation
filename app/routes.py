@@ -1,5 +1,6 @@
-from flask import Blueprint, jsonify, render_template, request
+from flask import Blueprint, jsonify, render_template, request, session
 
+from .database import record_translation
 from .logger import get_logger
 from .translator import translate
 
@@ -29,6 +30,12 @@ def translate_api():
     logger.info("收到翻译请求，文本长度=%d", len(text))
     try:
         result = translate(text)
+        user_id = session.get("user_id")
+        if user_id:
+            try:
+                record_translation(user_id, text, result.translated, result.from_lang, result.to_lang)
+            except Exception:
+                pass
         return jsonify(result.to_dict())
     except Exception as e:
         logger.exception("翻译异常: %s", e)

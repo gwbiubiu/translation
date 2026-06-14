@@ -23,3 +23,7 @@ build/
 dist/
 wheels/
 *.egg-info
+
+# React dashboard
+dashboard-ui/node_modules/
+dashboard-ui/dist/

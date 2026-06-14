@@ -14,6 +14,13 @@ var lastText = '';
 document.getElementById('settingsBtn').addEventListener('click', function () {
   chrome.runtime.openOptionsPage();
 });
+
+document.getElementById('dashboardBtn').addEventListener('click', function () {
+  chrome.storage.sync.get('apiBase', function (data) {
+    var base = (data.apiBase || 'https://translation.gwbiubiu.com').replace(/\/$/, '');
+    chrome.tabs.create({ url: base + '/dashboard' });
+  });
+});
 document.getElementById('clearBtn').addEventListener('click', clearInput);
 document.getElementById('copyBtn').addEventListener('click', copyResult);
 document.getElementById('clearAllBtn').addEventListener('click', clearAllVocab);

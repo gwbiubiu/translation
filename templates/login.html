@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>登录 · 智能翻译</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding: 48px 40px;
+      width: 380px;
+      text-align: center;
+    }
+
+    .logo {
+      width: 56px; height: 56px;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+      box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+    }
+
+    h1 { font-size: 22px; font-weight: 700; color: #1a1a1a; margin-bottom: 6px; }
+    .subtitle { font-size: 14px; color: #9ca3af; margin-bottom: 36px; }
+
+    .wechat-btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; padding: 14px;
+      background: #07C160; color: #fff;
+      border: none; border-radius: 10px;
+      font-size: 16px; font-weight: 600; cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s, box-shadow 0.15s;
+      text-decoration: none;
+    }
+    .wechat-btn:hover { background: #06ad56; box-shadow: 0 4px 12px rgba(7,193,96,0.35); }
+
+    .mock-btn {
+      display: block; width: 100%; padding: 12px;
+      background: none; color: #9ca3af;
+      border: 1px dashed #d1d5db; border-radius: 10px;
+      font-size: 14px; cursor: pointer; margin-top: 12px;
+      font-family: inherit;
+      transition: border-color 0.15s, color 0.15s;
+      text-decoration: none;
+    }
+    .mock-btn:hover { border-color: #6366f1; color: #6366f1; }
+
+    .not-configured {
+      margin-top: 20px; padding: 14px;
+      background: #fefce8; border: 1px solid #fde68a;
+      border-radius: 10px; font-size: 13px; color: #92400e; line-height: 1.6;
+    }
+
+    .error-msg {
+      margin-bottom: 16px; padding: 12px;
+      background: #fef2f2; border: 1px solid #fca5a5;
+      border-radius: 8px; font-size: 13px; color: #dc2626;
+    }
+
+    .back-link {
+      display: inline-block; margin-top: 28px;
+      font-size: 13px; color: #9ca3af; text-decoration: none;
+    }
+    .back-link:hover { color: #6366f1; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 8l6 6"/><path d="M4 14l6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/>
+        <path d="m22 22-5-10-5 10"/><path d="M14 18h6"/>
+      </svg>
+    </div>
+
+    <h1>智能翻译</h1>
+    <p class="subtitle">登录后可查看翻译历史与会员状态</p>
+
+    {% if db_unavailable %}
+    <div class="not-configured">
+      数据库未连接，登录功能暂不可用<br>
+      请在 <code>config.yaml</code> 中配置 <code>mysql</code> 连接信息
+    </div>
+    {% else %}
+
+    {% if error %}
+    <div class="error-msg">{{ error }}</div>
+    {% endif %}
+
+    {% if has_wechat %}
+    <a class="wechat-btn" href="/auth/wechat">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M8.5 11.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm5.5 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+        <path d="M12 2C6.477 2 2 6.062 2 11c0 2.674 1.313 5.057 3.38 6.698L4.5 21l3.604-1.875A11.3 11.3 0 0 0 12 20c5.523 0 10-4.062 10-9S17.523 2 12 2z"/>
+      </svg>
+      微信扫码登录
+    </a>
+    {% else %}
+    <div class="not-configured">
+      微信登录暂未配置<br>
+      请在 <code>config.yaml</code> 中填写<br>
+      <code>wechat.app_id</code> 和 <code>wechat.app_secret</code>
+    </div>
+    <a class="mock-btn" href="/auth/mock-login">测试账号登录（开发用）</a>
+    {% endif %}
+
+    {% endif %}
+
+    <a class="back-link" href="/">← 返回翻译</a>
+  </div>
+</body>
+</html>
