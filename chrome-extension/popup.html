@@ -12,6 +12,7 @@
       background: #f5f7fa;
     }
 
+    /* ── Header ── */
     .header {
       display: flex;
       justify-content: space-between;
@@ -20,127 +21,263 @@
       background: #fff;
       border-bottom: 1px solid #eee;
     }
-
+    .header-left { display: flex; align-items: center; gap: 8px; }
+    .header-icon {
+      width: 26px; height: 26px; border-radius: 8px;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 1px 4px rgba(99,102,241,0.35);
+      flex-shrink: 0;
+    }
     .header h1 { font-size: 15px; font-weight: 600; color: #1a1a1a; }
-
     .settings-btn {
       background: none; border: none; cursor: pointer;
-      color: #aaa; font-size: 18px; padding: 0 2px;
+      color: #aaa; font-size: 18px; padding: 2px 4px; border-radius: 6px;
+      transition: color 0.15s, background 0.15s;
     }
-    .settings-btn:hover { color: #555; }
+    .settings-btn:hover { color: #555; background: #f3f4f6; }
 
-    .lang-bar {
+    /* ── Tabs ── */
+    .tab-bar {
       display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 16px;
       background: #fff;
-      font-size: 12px;
-      color: #666;
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 0 16px;
     }
-
-    .lang-tag {
-      background: #e8f0fe;
-      color: #1a73e8;
-      padding: 2px 10px;
-      border-radius: 20px;
-      font-weight: 500;
-    }
-
-    .panel {
-      background: #fff;
-      margin: 8px;
-      border-radius: 10px;
-      border: 1px solid #eee;
-      overflow: hidden;
-    }
-
-    textarea {
-      width: 100%; height: 130px;
-      padding: 12px 14px;
-      font-size: 14px; line-height: 1.65;
-      border: none; outline: none; resize: none;
-      color: #1a1a1a; background: transparent;
+    .tab {
+      flex: 1; padding: 10px 0; font-size: 13px; font-weight: 500;
+      background: none; border: none; cursor: pointer;
+      color: #9ca3af; border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
       font-family: inherit;
     }
+    .tab.active { color: #4f46e5; border-bottom-color: #4f46e5; }
+    .tab:hover:not(.active) { color: #6b7280; }
 
-    .panel-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 6px 12px;
-      border-top: 1px solid #f5f5f5;
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Translation tab ── */
+    .lang-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 16px; background: #fff; font-size: 12px; color: #666;
+      border-bottom: 1px solid #f0f0f0;
     }
-
+    .lang-tag {
+      background: #eff6ff; color: #3730a3;
+      padding: 2px 10px; border-radius: 20px; font-weight: 500;
+      border: 1px solid #c7d2fe; font-size: 12px;
+    }
+    .panel {
+      background: #fff; margin: 8px;
+      border-radius: 10px; border: 1px solid #eee; overflow: hidden;
+    }
+    textarea {
+      width: 100%; height: 130px; padding: 12px 14px;
+      font-size: 14px; line-height: 1.65; border: none; outline: none;
+      resize: none; color: #1a1a1a; background: transparent; font-family: inherit;
+    }
+    .panel-footer {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 12px; border-top: 1px solid #f5f5f5;
+    }
     .char-count { font-size: 11px; color: #ccc; }
-
     .clear-btn, .copy-btn {
-      font-size: 12px; cursor: pointer;
-      background: none; border: none;
-      padding: 2px 8px; border-radius: 4px;
+      font-size: 12px; cursor: pointer; background: none; border: none;
+      padding: 2px 8px; border-radius: 4px; font-family: inherit;
     }
     .clear-btn { color: #bbb; }
     .clear-btn:hover { background: #f5f5f5; color: #666; }
-    .copy-btn { color: #1a73e8; display: none; }
-    .copy-btn:hover { background: #e8f0fe; }
-
+    .copy-btn { color: #4f46e5; display: none; }
+    .copy-btn:hover { background: #eff6ff; }
     .divider {
       display: flex; align-items: center; justify-content: center;
-      padding: 4px 0;
-      color: #ccc; font-size: 18px;
+      padding: 4px 0; color: #ccc; font-size: 18px;
     }
-
     .output-area {
-      min-height: 130px; max-height: 200px;
-      padding: 12px 14px;
-      font-size: 14px; line-height: 1.65;
-      color: #1a1a1a; overflow-y: auto;
-      white-space: pre-wrap; word-break: break-word;
+      min-height: 130px; max-height: 200px; padding: 12px 14px;
+      font-size: 14px; line-height: 1.65; color: #1a1a1a;
+      overflow-y: auto; white-space: pre-wrap; word-break: break-word;
     }
-
     .output-area.placeholder { color: #ccc; }
-
     .spinner {
       display: none; width: 18px; height: 18px;
-      border: 2px solid #e0e0e0; border-top-color: #1a73e8;
-      border-radius: 50%; animation: spin 0.7s linear infinite;
-      margin: 12px auto;
+      border: 2px solid #e0e0e0; border-top-color: #6366f1;
+      border-radius: 50%; animation: spin 0.7s linear infinite; margin: 12px auto;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Vocab tab ── */
+    .vocab-toolbar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 12px 10px 16px; background: #fff;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .vocab-count { font-size: 12px; color: #9ca3af; }
+    .vocab-actions { display: flex; gap: 6px; align-items: center; }
+
+    .export-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: #fff; border: none; cursor: pointer;
+      font-size: 12px; font-weight: 500; padding: 5px 12px;
+      border-radius: 6px; font-family: inherit;
+      box-shadow: 0 1px 4px rgba(99,102,241,0.3);
+      transition: opacity 0.15s, box-shadow 0.15s;
+    }
+    .export-btn:hover { opacity: 0.9; box-shadow: 0 2px 8px rgba(99,102,241,0.4); }
+    .export-btn:disabled { opacity: 0.45; cursor: default; box-shadow: none; }
+
+    .clear-all-btn {
+      background: none; border: 1px solid #e5e7eb; cursor: pointer;
+      font-size: 12px; color: #9ca3af; padding: 5px 10px;
+      border-radius: 6px; font-family: inherit;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .clear-all-btn:hover { background: #fef2f2; color: #ef4444; border-color: #fca5a5; }
+
+    .vocab-list { max-height: 380px; overflow-y: auto; padding: 0 0 8px; }
+
+    .vocab-item {
+      background: #fff; margin: 8px 8px 0;
+      border-radius: 10px; border: 1px solid #e5e7eb;
+      overflow: hidden; transition: box-shadow 0.15s;
+    }
+    .vocab-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+
+    .vocab-item-header {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 10px 5px;
+      background: linear-gradient(to right, #fafbfd, #f8faff);
+      border-bottom: 1px solid #f0f2f5;
+    }
+    .vocab-type-badge {
+      font-size: 10px; font-weight: 600; padding: 1px 7px;
+      border-radius: 20px; flex-shrink: 0;
+    }
+    .vocab-type-badge.word {
+      background: #eff6ff; color: #3730a3; border: 1px solid #c7d2fe;
+    }
+    .vocab-type-badge.phrase {
+      background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;
+    }
+    .vocab-lang { font-size: 10px; color: #9ca3af; flex: 1; }
+    .vocab-date { font-size: 10px; color: #d1d5db; }
+    .vocab-delete {
+      background: none; border: none; cursor: pointer; color: #d1d5db;
+      font-size: 16px; line-height: 1; padding: 0 2px; flex-shrink: 0;
+      font-family: inherit; transition: color 0.15s;
+    }
+    .vocab-delete:hover { color: #ef4444; }
+
+    .vocab-item-body { padding: 8px 12px 10px; }
+    .vocab-source {
+      font-size: 13px; font-weight: 600; color: #1f2937;
+      margin-bottom: 3px; word-break: break-word;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .vocab-translation {
+      font-size: 12px; color: #6b7280; line-height: 1.5;
+      word-break: break-word;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* ── Empty state ── */
+    .empty-state {
+      display: none; flex-direction: column; align-items: center;
+      justify-content: center; padding: 48px 24px; text-align: center;
+    }
+    .empty-state-icon {
+      width: 56px; height: 56px; border-radius: 16px;
+      background: linear-gradient(135deg, #eff6ff, #f5f3ff);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 14px;
+    }
+    .empty-state p { font-size: 14px; color: #6b7280; font-weight: 500; }
+    .empty-hint { font-size: 12px; color: #d1d5db; margin-top: 6px; }
   </style>
 </head>
 <body>
+  <!-- Header -->
   <div class="header">
-    <h1>智能翻译</h1>
+    <div class="header-left">
+      <div class="header-icon">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 8l6 6"/><path d="M4 14l6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/>
+          <path d="m22 22-5-10-5 10"/><path d="M14 18h6"/>
+        </svg>
+      </div>
+      <h1>智能翻译</h1>
+    </div>
     <button class="settings-btn" id="settingsBtn" title="设置">⚙</button>
   </div>
 
-  <div class="lang-bar">
-    <span id="srcLabel" class="lang-tag">自动检测</span>
-    <span>→</span>
-    <span id="tgtLabel" class="lang-tag">目标语言</span>
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <button class="tab active" data-tab="translate">翻译</button>
+    <button class="tab" data-tab="vocab">词汇本</button>
   </div>
 
-  <div class="panel">
-    <textarea id="inputText" placeholder="输入中文或英文，自动检测语言并翻译…"></textarea>
-    <div class="panel-footer">
-      <span class="char-count" id="charCount">0 字符</span>
-      <button class="clear-btn" onclick="clearInput()">清空</button>
+  <!-- ── Translation tab ── -->
+  <div class="tab-panel active" id="panel-translate">
+    <div class="lang-bar">
+      <span id="srcLabel" class="lang-tag">自动检测</span>
+      <span>→</span>
+      <span id="tgtLabel" class="lang-tag">目标语言</span>
+    </div>
+
+    <div class="panel">
+      <textarea id="inputText" placeholder="输入中文或英文，自动检测语言并翻译…"></textarea>
+      <div class="panel-footer">
+        <span class="char-count" id="charCount">0 字符</span>
+        <button class="clear-btn" id="clearBtn">清空</button>
+      </div>
+    </div>
+
+    <div class="divider">↓</div>
+
+    <div class="panel">
+      <div class="spinner" id="spinner"></div>
+      <div class="output-area placeholder" id="outputText">翻译结果</div>
+      <div class="panel-footer">
+        <span></span>
+        <button class="copy-btn" id="copyBtn">复制</button>
+      </div>
     </div>
   </div>
 
-  <div class="divider">↓</div>
+  <!-- ── Vocab tab ── -->
+  <div class="tab-panel" id="panel-vocab">
+    <div class="vocab-toolbar">
+      <span class="vocab-count" id="vocabCount">0 个词汇</span>
+      <div class="vocab-actions">
+        <button class="clear-all-btn" id="clearAllBtn">清空全部</button>
+        <button class="export-btn" id="exportBtn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          导出 Excel
+        </button>
+      </div>
+    </div>
 
-  <div class="panel">
-    <div class="spinner" id="spinner"></div>
-    <div class="output-area placeholder" id="outputText">翻译结果</div>
-    <div class="panel-footer">
-      <span></span>
-      <button class="copy-btn" id="copyBtn" onclick="copyResult()">复制</button>
+    <div class="vocab-list" id="vocabList"></div>
+
+    <div class="empty-state" id="vocabEmpty">
+      <div class="empty-state-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+        </svg>
+      </div>
+      <p>暂无收藏词汇</p>
+      <p class="empty-hint">划词翻译时，点击 ★ 或「收藏」即可保存</p>
     </div>
   </div>
 
+  <script src="xlsx.mini.min.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>
