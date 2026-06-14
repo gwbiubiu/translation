@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>智能翻译</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 460px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f7fa;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: #fff;
+      border-bottom: 1px solid #eee;
+    }
+
+    .header h1 { font-size: 15px; font-weight: 600; color: #1a1a1a; }
+
+    .settings-btn {
+      background: none; border: none; cursor: pointer;
+      color: #aaa; font-size: 18px; padding: 0 2px;
+    }
+    .settings-btn:hover { color: #555; }
+
+    .lang-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: #fff;
+      font-size: 12px;
+      color: #666;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .lang-tag {
+      background: #e8f0fe;
+      color: #1a73e8;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    .panel {
+      background: #fff;
+      margin: 8px;
+      border-radius: 10px;
+      border: 1px solid #eee;
+      overflow: hidden;
+    }
+
+    textarea {
+      width: 100%; height: 130px;
+      padding: 12px 14px;
+      font-size: 14px; line-height: 1.65;
+      border: none; outline: none; resize: none;
+      color: #1a1a1a; background: transparent;
+      font-family: inherit;
+    }
+
+    .panel-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 12px;
+      border-top: 1px solid #f5f5f5;
+    }
+
+    .char-count { font-size: 11px; color: #ccc; }
+
+    .clear-btn, .copy-btn {
+      font-size: 12px; cursor: pointer;
+      background: none; border: none;
+      padding: 2px 8px; border-radius: 4px;
+    }
+    .clear-btn { color: #bbb; }
+    .clear-btn:hover { background: #f5f5f5; color: #666; }
+    .copy-btn { color: #1a73e8; display: none; }
+    .copy-btn:hover { background: #e8f0fe; }
+
+    .divider {
+      display: flex; align-items: center; justify-content: center;
+      padding: 4px 0;
+      color: #ccc; font-size: 18px;
+    }
+
+    .output-area {
+      min-height: 130px; max-height: 200px;
+      padding: 12px 14px;
+      font-size: 14px; line-height: 1.65;
+      color: #1a1a1a; overflow-y: auto;
+      white-space: pre-wrap; word-break: break-word;
+    }
+
+    .output-area.placeholder { color: #ccc; }
+
+    .spinner {
+      display: none; width: 18px; height: 18px;
+      border: 2px solid #e0e0e0; border-top-color: #1a73e8;
+      border-radius: 50%; animation: spin 0.7s linear infinite;
+      margin: 12px auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>智能翻译</h1>
+    <button class="settings-btn" id="settingsBtn" title="设置">⚙</button>
+  </div>
+
+  <div class="lang-bar">
+    <span id="srcLabel" class="lang-tag">自动检测</span>
+    <span>→</span>
+    <span id="tgtLabel" class="lang-tag">目标语言</span>
+  </div>
+
+  <div class="panel">
+    <textarea id="inputText" placeholder="输入中文或英文，自动检测语言并翻译…"></textarea>
+    <div class="panel-footer">
+      <span class="char-count" id="charCount">0 字符</span>
+      <button class="clear-btn" onclick="clearInput()">清空</button>
+    </div>
+  </div>
+
+  <div class="divider">↓</div>
+
+  <div class="panel">
+    <div class="spinner" id="spinner"></div>
+    <div class="output-area placeholder" id="outputText">翻译结果</div>
+    <div class="panel-footer">
+      <span></span>
+      <button class="copy-btn" id="copyBtn" onclick="copyResult()">复制</button>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

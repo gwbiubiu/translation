@@ -1,0 +1,25 @@
+# Secrets
+.env
+config.yaml
+
+# Python
+__pycache__/
+*.py[oc]
+.venv/
+
+# Logs
+logs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Playwright
+.playwright-mcp/
+
+# Build
+build/
+dist/
+wheels/
+*.egg-info
