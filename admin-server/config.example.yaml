@@ -1,0 +1,13 @@
+port: 15002
+session_secret: "your-admin-secret-string"
+
+admin:
+  username: "admin"
+  password: "YOUR_ADMIN_PASSWORD"
+
+mysql:
+  host: "127.0.0.1"
+  port: 3306
+  user: "root"
+  password: "YOUR_MYSQL_PASSWORD"
+  database: "translation_db"

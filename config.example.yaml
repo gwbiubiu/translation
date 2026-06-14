@@ -16,3 +16,9 @@ mysql:
   user: "root"
   password: "YOUR_MYSQL_PASSWORD"
   database: "translation_db"
+
+admin:
+  username: "admin"
+  password: "YOUR_ADMIN_PASSWORD"
+  port: 15002
+  session_secret: "your-admin-secret-string"

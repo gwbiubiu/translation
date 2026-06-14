@@ -24,6 +24,8 @@ dist/
 wheels/
 *.egg-info
 
-# React dashboard
+# React apps
 dashboard-ui/node_modules/
 dashboard-ui/dist/
+admin-ui/node_modules/
+admin-ui/dist/
