@@ -1,15 +1,3 @@
-# Secrets
-.env
-config.yaml
-
-# Python
-__pycache__/
-*.py[oc]
-.venv/
-
-# Logs
-logs/
-
 # IDE
 .idea/
 .vscode/
@@ -18,13 +6,11 @@ logs/
 # Playwright
 .playwright-mcp/
 
-# Build
-build/
-dist/
-wheels/
-*.egg-info
+# Python (catch-all for root level)
+__pycache__/
+*.py[oc]
 
-# React apps
+# React apps — built output and dependencies
 dashboard-ui/node_modules/
 dashboard-ui/dist/
 admin-ui/node_modules/
