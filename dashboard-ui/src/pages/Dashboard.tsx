@@ -79,9 +79,6 @@ function Navbar({ onLogout }: { onLogout: () => void }) {
           <span className="text-[15px] font-semibold text-gray-900">智能翻译</span>
         </a>
         <div className="flex items-center gap-4">
-          <a href="/" className="text-sm text-gray-500 hover:text-indigo-500 transition-colors no-underline">
-            翻译
-          </a>
           <button
             onClick={onLogout}
             className="text-sm text-gray-500 border border-gray-200 px-3.5 py-1.5 rounded-lg hover:text-red-500 hover:border-red-300 transition-colors cursor-pointer bg-transparent"
