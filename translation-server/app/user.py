@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from functools import wraps
 
-from flask import Blueprint, jsonify, redirect, render_template, session
+from flask import Blueprint, jsonify, redirect, session
 
 from .database import get_user_by_id, get_user_stats
 
@@ -18,17 +18,6 @@ def login_required(f):
             return redirect("/login")
         return f(*args, **kwargs)
     return decorated
-
-
-@user_bp.route("/dashboard")
-@login_required
-def dashboard():
-    user = get_user_by_id(session["user_id"])
-    if not user:
-        session.clear()
-        return redirect("/login")
-    stats = get_user_stats(user["id"])
-    return render_template("dashboard.html", user=user, stats=stats)
 
 
 @user_bp.route("/api/user/me")

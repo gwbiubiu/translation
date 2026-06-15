@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, render_template, request, session
+from flask import Blueprint, jsonify, request, session
 
 from .database import record_translation
 from .logger import get_logger
@@ -6,11 +6,6 @@ from .translator import translate
 
 bp = Blueprint("api", __name__)
 logger = get_logger(__name__)
-
-
-@bp.route("/")
-def index():
-    return render_template("index.html")
 
 
 @bp.route("/translate", methods=["POST", "OPTIONS"])
