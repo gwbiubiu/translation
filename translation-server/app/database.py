@@ -60,14 +60,15 @@ def init_db():
                         INDEX idx_user_time (user_id, created_at DESC)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
                 """)
-                # 新增 membership_expires_at（幂等，已存在则忽略）
-                try:
-                    cur.execute("""
-                        ALTER TABLE users
-                        ADD COLUMN membership_expires_at DATETIME NULL DEFAULT NULL
-                    """)
-                except Exception:
-                    pass  # 列已存在
+                # 新增列（幂等，已存在则忽略）
+                for ddl in [
+                    "ALTER TABLE users ADD COLUMN membership_expires_at DATETIME NULL DEFAULT NULL",
+                    "ALTER TABLE users ADD COLUMN email VARCHAR(255) DEFAULT '' AFTER avatar_url",
+                ]:
+                    try:
+                        cur.execute(ddl)
+                    except Exception:
+                        pass
                 cur.execute("""
                     CREATE TABLE IF NOT EXISTS orders (
                         id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -118,16 +119,42 @@ def _conn():
         conn.close()
 
 
-def get_or_create_user(openid: str, nickname: str = "", avatar_url: str = "") -> dict:
+def get_or_create_user(openid: str, nickname: str = "", avatar_url: str = "", email: str = "") -> dict:
     with _conn() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "INSERT INTO users (openid, nickname, avatar_url) VALUES (%s, %s, %s) "
-                "ON DUPLICATE KEY UPDATE nickname=VALUES(nickname), avatar_url=VALUES(avatar_url)",
-                (openid, nickname, avatar_url),
+                "INSERT INTO users (openid, nickname, avatar_url, email) VALUES (%s, %s, %s, %s) "
+                "ON DUPLICATE KEY UPDATE nickname=VALUES(nickname), avatar_url=VALUES(avatar_url), "
+                "email=IF(VALUES(email)!='', VALUES(email), email)",
+                (openid, nickname, avatar_url, email),
             )
             cur.execute("SELECT * FROM users WHERE openid=%s", (openid,))
             return cur.fetchone()
+
+
+def get_user_by_email(email: str) -> dict | None:
+    if not email:
+        return None
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM users WHERE email=%s", (email.strip().lower(),))
+            return cur.fetchone()
+
+
+def activate_membership(user_id: int, months: int = 1) -> None:
+    from datetime import datetime, timezone
+    from dateutil.relativedelta import relativedelta
+    user = get_user_by_id(user_id)
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    current_expiry = user.get("membership_expires_at") if user else None
+    base = current_expiry if (current_expiry and current_expiry > now) else now
+    new_expiry = base + relativedelta(months=months)
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE users SET membership='pro', membership_expires_at=%s WHERE id=%s",
+                (new_expiry, user_id),
+            )
 
 
 def get_user_by_id(user_id: int) -> dict | None:

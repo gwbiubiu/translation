@@ -1,11 +1,10 @@
-from flask import Flask
+from flask import Flask, g
 
 from .auth import auth_bp
 from .config import config
 from .database import init_db
-from .payment import payment_bp
 from .routes import bp
-from .user import user_bp
+from .user import set_token_cookie, user_bp
 
 
 def create_app() -> Flask:
@@ -17,7 +16,12 @@ def create_app() -> Flask:
     app.register_blueprint(bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(user_bp)
-    app.register_blueprint(payment_bp)
+
+    @app.after_request
+    def maybe_renew_token(response):
+        if getattr(g, "renew_token", False) and hasattr(g, "user_id"):
+            set_token_cookie(response, g.user_id)
+        return response
 
     @app.after_request
     def add_cors_headers(response):

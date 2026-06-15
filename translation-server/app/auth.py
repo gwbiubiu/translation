@@ -7,6 +7,7 @@ from flask import Blueprint, redirect, request, session, url_for
 
 from .config import config
 from .database import get_or_create_user, is_available
+from .user import set_token_cookie
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -84,9 +85,12 @@ def google_callback():
         openid=f"google_{google_id}",
         nickname=user_info.get("name", ""),
         avatar_url=user_info.get("picture", ""),
+        email=user_info.get("email", "").lower(),
     )
-    session["user_id"] = user["id"]
-    return redirect(_frontend("/dashboard"))
+
+    response = redirect(_frontend("/dashboard"))
+    set_token_cookie(response, user["id"])
+    return response
 
 
 @auth_bp.route("/auth/mock-login")
@@ -100,11 +104,14 @@ def mock_login():
         nickname="测试用户",
         avatar_url="",
     )
-    session["user_id"] = user["id"]
-    return redirect(_frontend("/dashboard"))
+    response = redirect(_frontend("/dashboard"))
+    set_token_cookie(response, user["id"])
+    return response
 
 
 @auth_bp.route("/auth/logout", methods=["POST"])
 def logout():
     session.clear()
-    return redirect(_frontend("/login"))
+    response = redirect(_frontend("/login"))
+    response.delete_cookie("token", path="/")
+    return response

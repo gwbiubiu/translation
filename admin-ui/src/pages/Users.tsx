@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { api, type AdminUser, type UsersResult } from '../lib/api'
 
 const PAGE_SIZE = 20
@@ -11,6 +11,8 @@ export default function Users() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [updating, setUpdating] = useState<number | null>(null)
+  const [confirm, setConfirm] = useState<AdminUser | null>(null)
+  const [months, setMonths] = useState(1)
 
   const fetchUsers = useCallback((p: number, query: string) => {
     setLoading(true)
@@ -28,15 +30,18 @@ export default function Users() {
     setQ(inputQ)
   }
 
-  async function toggleMembership(user: AdminUser) {
+  async function confirmToggle() {
+    if (!confirm) return
+    const user = confirm
     const next = user.membership === 'pro' ? 'free' : 'pro'
+    const m = months
+    setConfirm(null)
+    setMonths(1)
     setUpdating(user.id)
     try {
-      await api.updateMembership(user.id, next)
-      setResult(prev => prev ? {
-        ...prev,
-        users: prev.users.map(u => u.id === user.id ? { ...u, membership: next } : u),
-      } : prev)
+      await api.updateMembership(user.id, next, m)
+      // 重新拉取当页数据以获得最新 expires_at
+      fetchUsers(page, q)
     } catch (e: any) {
       alert(e.message)
     } finally {
@@ -116,18 +121,28 @@ export default function Users() {
                   <td className="px-5 py-3.5 text-center text-slate-500 text-xs">{user.created_at}</td>
                   <td className="px-5 py-3.5 text-center">
                     {user.membership === 'pro' ? (
-                      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-950/60 text-amber-400 border border-amber-900/50">
-                        ⭐ Pro
-                      </span>
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-950/60 text-amber-400 border border-amber-900/50">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                          </svg>
+                          Pro
+                        </span>
+                        {user.membership_expires_at && (
+                          <span className="text-[11px] text-slate-500">
+                            到期 {user.membership_expires_at}
+                          </span>
+                        )}
+                      </div>
                     ) : (
-                      <span className="inline-flex items-center text-xs px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-500 border border-slate-700">
+                      <span className="inline-flex items-center text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-500 border border-slate-700">
                         免费
                       </span>
                     )}
                   </td>
                   <td className="px-5 py-3.5 text-center">
                     <button
-                      onClick={() => toggleMembership(user)}
+                      onClick={() => setConfirm(user)}
                       disabled={updating === user.id}
                       className={`text-xs px-3 py-1.5 rounded-lg transition-colors cursor-pointer disabled:opacity-40 ${
                         user.membership === 'pro'
@@ -169,6 +184,115 @@ export default function Users() {
           </div>
         </div>
       )}
+
+      {confirm && (
+        <ConfirmModal
+          user={confirm}
+          months={months}
+          setMonths={setMonths}
+          onConfirm={confirmToggle}
+          onCancel={() => { setConfirm(null); setMonths(1) }}
+        />
+      )}
+    </div>
+  )
+}
+
+function ConfirmModal({ user, months, setMonths, onConfirm, onCancel }: {
+  user: AdminUser
+  months: number
+  setMonths: (n: number) => void
+  onConfirm: () => void
+  onCancel: () => void
+}) {
+  const isRevoke = user.membership === 'pro'
+  const confirmRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    confirmRef.current?.focus()
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onCancel() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onCancel])
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4"
+      onClick={onCancel}
+    >
+      <div
+        className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-sm p-6"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* 图标 */}
+        <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-4 ${
+          isRevoke ? 'bg-red-950/60' : 'bg-indigo-950/60'
+        }`}>
+          {isRevoke ? (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          ) : (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#818cf8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+          )}
+        </div>
+
+        <h3 className="text-base font-semibold text-white mb-1">
+          {isRevoke ? '取消 Pro 会员' : '升级为 Pro 会员'}
+        </h3>
+        <p className="text-sm text-slate-400 mb-5 leading-relaxed">
+          用户：<span className="font-medium text-slate-200">{user.nickname || `#${user.id}`}</span>
+          {!isRevoke && user.membership_expires_at && (
+            <span className="text-slate-500">（当前到期 {user.membership_expires_at}）</span>
+          )}
+        </p>
+
+        {/* 月数选择器（仅升级时显示） */}
+        {!isRevoke && (
+          <div className="mb-5">
+            <p className="text-xs text-slate-400 mb-3">开通时长</p>
+            <div className="grid grid-cols-6 gap-1.5">
+              {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setMonths(m)}
+                  className={`py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer border ${
+                    months === m
+                      ? 'bg-indigo-600 text-white border-indigo-500'
+                      : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700 hover:text-white'
+                  }`}
+                >
+                  {m}月
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="flex gap-3">
+          <button
+            onClick={onCancel}
+            className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors cursor-pointer border border-slate-700"
+          >
+            取消
+          </button>
+          <button
+            ref={confirmRef}
+            onClick={onConfirm}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors cursor-pointer border-none ${
+              isRevoke
+                ? 'bg-red-600 hover:bg-red-500 text-white'
+                : 'bg-indigo-600 hover:bg-indigo-500 text-white'
+            }`}
+          >
+            {isRevoke ? '确认取消' : `确认升级 ${months} 个月`}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

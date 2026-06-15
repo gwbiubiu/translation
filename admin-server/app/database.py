@@ -127,7 +127,8 @@ def get_users(page: int = 1, page_size: int = 20, q: str = "") -> dict:
                 )
                 total = cur.fetchone()["cnt"]
                 cur.execute("""
-                    SELECT u.id, u.openid, u.nickname, u.avatar_url, u.membership, u.created_at,
+                    SELECT u.id, u.openid, u.nickname, u.avatar_url, u.membership,
+                           u.membership_expires_at, u.created_at,
                            COUNT(t.id) AS translation_count
                     FROM users u
                     LEFT JOIN translation_history t ON t.user_id = u.id
@@ -140,7 +141,8 @@ def get_users(page: int = 1, page_size: int = 20, q: str = "") -> dict:
                 cur.execute("SELECT COUNT(*) AS cnt FROM users")
                 total = cur.fetchone()["cnt"]
                 cur.execute("""
-                    SELECT u.id, u.openid, u.nickname, u.avatar_url, u.membership, u.created_at,
+                    SELECT u.id, u.openid, u.nickname, u.avatar_url, u.membership,
+                           u.membership_expires_at, u.created_at,
                            COUNT(t.id) AS translation_count
                     FROM users u
                     LEFT JOIN translation_history t ON t.user_id = u.id
@@ -152,18 +154,32 @@ def get_users(page: int = 1, page_size: int = 20, q: str = "") -> dict:
 
     for u in users:
         if hasattr(u.get("created_at"), "strftime"):
-            u["created_at"] = u["created_at"].strftime("%Y-%m-%d %H:%M")
+            u["created_at"] = u["created_at"].strftime("%Y-%m-%d")
+        exp = u.get("membership_expires_at")
+        u["membership_expires_at"] = exp.strftime("%Y-%m-%d") if exp else None
 
     return {"total": total, "page": page, "page_size": page_size, "users": users}
 
 
-def update_user_membership(user_id: int, membership: str) -> bool:
+def update_user_membership(user_id: int, membership: str, months: int = 1) -> bool:
     if membership not in ("free", "pro"):
         return False
     with _conn() as conn:
         with conn.cursor() as cur:
-            cur.execute(
-                "UPDATE users SET membership=%s WHERE id=%s",
-                (membership, user_id),
-            )
+            if membership == "pro":
+                # 从当前到期时间（若未来）或现在起延长 months 个月
+                cur.execute("""
+                    UPDATE users
+                    SET membership = 'pro',
+                        membership_expires_at = DATE_ADD(
+                            GREATEST(NOW(), COALESCE(membership_expires_at, NOW())),
+                            INTERVAL %s MONTH
+                        )
+                    WHERE id = %s
+                """, (months, user_id))
+            else:
+                cur.execute(
+                    "UPDATE users SET membership='free', membership_expires_at=NULL WHERE id=%s",
+                    (user_id,),
+                )
             return cur.rowcount > 0

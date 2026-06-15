@@ -2,6 +2,7 @@ export interface User {
   id: number
   nickname: string
   avatar_url: string
+  email: string
   membership: 'free' | 'pro'
   membership_expires_at: string | null
 }
@@ -17,15 +18,6 @@ export interface HistoryItem {
 export interface UserStats {
   total: number
   history: HistoryItem[]
-}
-
-export interface CreateOrderResult {
-  qr_code_url: string
-  out_trade_no: string
-}
-
-export interface OrderStatus {
-  status: 'pending' | 'paid' | 'failed'
 }
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
@@ -44,8 +36,4 @@ export const api = {
     fetch('/auth/logout', { method: 'POST', credentials: 'include' }).then(() => {
       window.location.href = '/login'
     }),
-  createOrder: () =>
-    request<CreateOrderResult>('/api/payment/create', { method: 'POST' }),
-  queryOrder: (outTradeNo: string) =>
-    request<OrderStatus>(`/api/payment/query/${outTradeNo}`),
 }

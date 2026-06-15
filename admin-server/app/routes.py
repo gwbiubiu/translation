@@ -42,5 +42,7 @@ def update_user(user_id: int):
     membership = body.get("membership")
     if not membership:
         return jsonify({"error": "缺少 membership 字段"}), 400
-    ok = update_user_membership(user_id, membership)
+    months = int(body.get("months", 1))
+    months = max(1, min(12, months))
+    ok = update_user_membership(user_id, membership, months)
     return jsonify({"ok": ok}) if ok else (jsonify({"error": "用户不存在"}), 404)

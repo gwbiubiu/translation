@@ -18,16 +18,3 @@ mysql:
   user: "root"
   password: "YOUR_MYSQL_PASSWORD"
   database: "translation_db"
-
-alipay:
-  app_id: "YOUR_ALIPAY_APP_ID"
-  private_key: |
-    -----BEGIN RSA PRIVATE KEY-----
-    YOUR_RSA2_PRIVATE_KEY_HERE
-    -----END RSA PRIVATE KEY-----
-  public_key: |
-    -----BEGIN PUBLIC KEY-----
-    YOUR_ALIPAY_RSA2_PUBLIC_KEY_HERE
-    -----END PUBLIC KEY-----
-  notify_url: "https://yourdomain.com/api/payment/notify"
-  sandbox: true

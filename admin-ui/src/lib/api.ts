@@ -17,6 +17,7 @@ export interface AdminUser {
   nickname: string
   avatar_url: string
   membership: 'free' | 'pro'
+  membership_expires_at: string | null
   created_at: string
   translation_count: number
 }
@@ -56,10 +57,10 @@ export const api = {
   users: (page = 1, q = '') =>
     req<UsersResult>(`/admin/api/users?page=${page}&q=${encodeURIComponent(q)}`),
 
-  updateMembership: (id: number, membership: string) =>
+  updateMembership: (id: number, membership: string, months = 1) =>
     req<{ ok: boolean }>(`/admin/api/users/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ membership }),
+      body: JSON.stringify({ membership, months }),
     }),
 }
