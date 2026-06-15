@@ -105,36 +105,38 @@ export default function Translation() {
       </nav>
 
       {/* Main */}
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="max-w-4xl mx-auto px-4" style={{ paddingTop: '32px', paddingBottom: '32px' }}>
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           {/* Lang bar */}
-          <div className="flex items-center gap-2 px-5 py-3 bg-gray-50 border-b border-gray-100">
-            <span className="text-xs font-medium px-3 py-0.5 rounded-full bg-indigo-50 text-indigo-600">
+          <div className="flex items-center gap-2 bg-gray-50 border-b border-gray-100" style={{ padding: '10px 20px' }}>
+            <span className="text-xs font-medium rounded-full bg-indigo-50 text-indigo-600" style={{ padding: '2px 12px' }}>
               {fromLang ? (LANG_NAME[fromLang] || fromLang) : '自动检测'}
             </span>
             <span className="text-gray-300 text-sm select-none">→</span>
-            <span className="text-xs font-medium px-3 py-0.5 rounded-full bg-indigo-50 text-indigo-600">
+            <span className="text-xs font-medium rounded-full bg-indigo-50 text-indigo-600" style={{ padding: '2px 12px' }}>
               {toLang ? (LANG_NAME[toLang] || toLang) : '目标语言'}
             </span>
           </div>
 
-          {/* Two panels */}
-          <div className="flex flex-col md:grid md:grid-cols-[1fr_1px_1fr]">
+          {/* Two panels — side by side */}
+          <div className="flex" style={{ minHeight: '320px' }}>
             {/* Input panel */}
-            <div className="flex flex-col">
+            <div className="flex flex-col flex-1">
               <textarea
-                className="flex-1 h-[240px] md:h-[280px] p-5 text-[15px] leading-relaxed border-none outline-none resize-none text-gray-900 bg-transparent placeholder:text-gray-300 focus:ring-0"
+                className="flex-1 border-none outline-none resize-none text-gray-900 bg-transparent placeholder:text-gray-300 focus:ring-0 leading-relaxed"
+                style={{ padding: '20px', fontSize: '15px', minHeight: '280px' }}
                 placeholder="输入中文或英文，自动识别并翻译…"
                 value={input}
                 onChange={(e) => handleInput(e.target.value)}
                 aria-label="输入文本"
               />
-              <div className="px-4 py-2 flex items-center justify-between border-t border-gray-50 min-h-[40px]">
+              <div className="flex items-center justify-between border-t border-gray-50" style={{ padding: '8px 16px', minHeight: '40px' }}>
                 <span className="text-xs text-gray-300 tabular-nums">{input.length} 字符</span>
                 {input && (
                   <button
                     onClick={() => handleInput('')}
-                    className="text-xs text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer px-2 py-1 rounded-md hover:bg-gray-50 transition-colors duration-150"
+                    className="text-xs text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer rounded-md hover:bg-gray-50 transition-colors duration-150"
+                    style={{ padding: '4px 8px' }}
                     aria-label="清空输入"
                   >
                     清空
@@ -143,16 +145,17 @@ export default function Translation() {
               </div>
             </div>
 
-            {/* Divider — vertical on desktop, horizontal on mobile */}
-            <div className="h-px bg-gray-100 md:h-auto md:w-px md:bg-gray-100" />
+            {/* Vertical divider */}
+            <div className="bg-gray-100" style={{ width: '1px', flexShrink: 0 }} />
 
             {/* Output panel */}
-            <div className="flex flex-col">
-              <div className="flex-1 h-[200px] md:h-[280px] p-5 text-[15px] leading-relaxed overflow-y-auto">
+            <div className="flex flex-col flex-1">
+              <div className="flex-1 overflow-y-auto leading-relaxed" style={{ padding: '20px', fontSize: '15px', minHeight: '280px' }}>
                 {translating ? (
                   <div className="h-full flex items-center justify-center">
                     <div
-                      className="w-5 h-5 border-2 border-gray-200 border-t-indigo-500 rounded-full animate-spin motion-reduce:animate-none"
+                      className="border-2 border-gray-200 border-t-indigo-500 rounded-full animate-spin"
+                      style={{ width: '20px', height: '20px' }}
                       role="status"
                       aria-label="翻译中"
                     />
@@ -163,11 +166,12 @@ export default function Translation() {
                   <span className="text-gray-300 select-none">翻译结果将显示在这里</span>
                 )}
               </div>
-              <div className="px-4 py-2 flex items-center justify-end border-t border-gray-50 min-h-[40px]">
+              <div className="flex items-center justify-end border-t border-gray-50" style={{ padding: '8px 16px', minHeight: '40px' }}>
                 {output && (
                   <button
                     onClick={handleCopy}
-                    className="text-xs text-indigo-500 hover:text-indigo-700 bg-transparent border-none cursor-pointer px-2 py-1 rounded-md hover:bg-indigo-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1 rounded-md"
+                    className="text-xs text-indigo-500 hover:text-indigo-700 bg-transparent border-none cursor-pointer rounded-md hover:bg-indigo-50 transition-colors duration-150 focus:outline-none"
+                    style={{ padding: '4px 8px' }}
                     aria-label="复制翻译结果"
                   >
                     {copied ? '已复制 ✓' : '复制'}
