@@ -10,6 +10,12 @@ from .database import get_or_create_user, is_available
 
 auth_bp = Blueprint("auth", __name__)
 
+
+def _frontend(path: str) -> str:
+    base = config.frontend_url.rstrip("/")
+    return f"{base}{path}" if base else path
+
+
 _GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 _GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 _GOOGLE_USER_URL = "https://www.googleapis.com/oauth2/v2/userinfo"
@@ -18,7 +24,7 @@ _GOOGLE_USER_URL = "https://www.googleapis.com/oauth2/v2/userinfo"
 @auth_bp.route("/auth/google")
 def google_login():
     if not is_available():
-        return redirect("/login")
+        return redirect(_frontend("/login"))
     state = secrets.token_urlsafe(16)
     session["oauth_state"] = state
     callback = config.google.redirect_uri or url_for("auth.google_callback", _external=True)
@@ -80,25 +86,25 @@ def google_callback():
         avatar_url=user_info.get("picture", ""),
     )
     session["user_id"] = user["id"]
-    return redirect("/dashboard")
+    return redirect(_frontend("/dashboard"))
 
 
 @auth_bp.route("/auth/mock-login")
 def mock_login():
     if not is_available():
-        return redirect("/login")
+        return redirect(_frontend("/login"))
     if config.google.client_id:
-        return redirect("/login")
+        return redirect(_frontend("/login"))
     user = get_or_create_user(
         openid="mock_user_dev",
         nickname="测试用户",
         avatar_url="",
     )
     session["user_id"] = user["id"]
-    return redirect("/dashboard")
+    return redirect(_frontend("/dashboard"))
 
 
 @auth_bp.route("/auth/logout", methods=["POST"])
 def logout():
     session.clear()
-    return redirect("/login")
+    return redirect(_frontend("/login"))

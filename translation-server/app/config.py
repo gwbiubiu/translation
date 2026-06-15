@@ -36,6 +36,7 @@ class AppConfig(BaseModel):
     ai: AIConfig
     port: int = 5000
     session_secret: str = "change-me-please-use-a-random-string"
+    frontend_url: str = ""  # 留空则用相对路径（生产环境），开发时填 http://localhost:5173
     google: GoogleConfig = GoogleConfig()
     mysql: MySQLConfig = MySQLConfig()
     alipay: AlipayConfig = AlipayConfig()

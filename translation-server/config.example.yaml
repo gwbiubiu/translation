@@ -1,5 +1,6 @@
 port: 15001
 session_secret: "your-random-secret-string"
+frontend_url: "http://localhost:5173"  # 生产环境填域名，或留空（Flask 与前端同域时）
 
 ai:
   api_key: "YOUR_AIHUBMIX_API_KEY"
