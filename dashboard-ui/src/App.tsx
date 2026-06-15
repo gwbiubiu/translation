@@ -20,6 +20,12 @@ export default function App() {
       })
   }, [])
 
+  const refreshUser = () => {
+    api.me().then((user) =>
+      setState((s) => (s.phase === 'ready' ? { ...s, user } : s))
+    ).catch(() => {})
+  }
+
   if (state.phase === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f0f2f5]">
@@ -36,5 +42,12 @@ export default function App() {
     )
   }
 
-  return <Dashboard user={state.user} stats={state.stats} onLogout={api.logout} />
+  return (
+    <Dashboard
+      user={state.user}
+      stats={state.stats}
+      onLogout={api.logout}
+      onRefreshUser={refreshUser}
+    />
+  )
 }

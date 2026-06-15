@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import type { User, UserStats, HistoryItem } from '../lib/api'
+import UpgradeModal from '../components/UpgradeModal'
 
 const LANG: Record<string, string> = { zh: '中文', en: '英语' }
 const lang = (code: string) => LANG[code] || code
@@ -7,17 +9,29 @@ interface Props {
   user: User
   stats: UserStats
   onLogout: () => void
+  onRefreshUser: () => void
 }
 
-export default function Dashboard({ user, stats, onLogout }: Props) {
+export default function Dashboard({ user, stats, onLogout, onRefreshUser }: Props) {
+  const [showUpgrade, setShowUpgrade] = useState(false)
+
   return (
     <div className="min-h-screen bg-[#f0f2f5]">
       <Navbar onLogout={onLogout} />
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-5">
-        <ProfileCard user={user} />
+        <ProfileCard user={user} onUpgrade={() => setShowUpgrade(true)} />
         <StatsRow total={stats.total} recentCount={stats.history.length} membership={user.membership} />
         <HistorySection items={stats.history} />
       </main>
+      {showUpgrade && (
+        <UpgradeModal
+          onClose={() => setShowUpgrade(false)}
+          onSuccess={() => {
+            setShowUpgrade(false)
+            onRefreshUser()
+          }}
+        />
+      )}
     </div>
   )
 }
@@ -50,7 +64,7 @@ function Navbar({ onLogout }: { onLogout: () => void }) {
 }
 
 /* ── Profile ─────────────────────────────────────────────────────── */
-function ProfileCard({ user }: { user: User }) {
+function ProfileCard({ user, onUpgrade }: { user: User; onUpgrade: () => void }) {
   const initial = (user.nickname || '用')[0]
   return (
     <div className="bg-white rounded-2xl shadow-sm p-7 flex items-center gap-6">
@@ -61,17 +75,32 @@ function ProfileCard({ user }: { user: User }) {
           initial
         )}
       </div>
-      <div>
+      <div className="flex-1">
         <div className="text-xl font-bold text-gray-900 mb-1.5">{user.nickname || '用户'}</div>
-        {user.membership === 'pro' ? (
-          <span className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-            ⭐ Pro 会员
-          </span>
-        ) : (
-          <span className="inline-flex items-center text-xs font-medium px-3 py-1 rounded-full bg-gray-100 text-gray-500">
-            免费版
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          {user.membership === 'pro' ? (
+            <span className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+              ⭐ Pro 会员
+            </span>
+          ) : (
+            <>
+              <span className="inline-flex items-center text-xs font-medium px-3 py-1 rounded-full bg-gray-100 text-gray-500">
+                免费版
+              </span>
+              <button
+                onClick={onUpgrade}
+                className="text-xs font-semibold px-3 py-1 rounded-full bg-indigo-500 text-white hover:bg-indigo-600 transition-colors cursor-pointer border-none"
+              >
+                升级 Pro ¥9.9/月
+              </button>
+            </>
+          )}
+          {user.membership === 'pro' && user.membership_expires_at && (
+            <span className="text-xs text-gray-400">
+              到期：{user.membership_expires_at.slice(0, 10)}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   )
