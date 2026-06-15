@@ -86,12 +86,6 @@ export default function Login() {
           </p>
         </div>
 
-        {/* Back link */}
-        <div className="text-center" style={{ marginTop: '20px' }}>
-          <a href="/" className="text-sm text-gray-400 hover:text-indigo-500 transition-colors duration-150 no-underline">
-            ← 返回翻译
-          </a>
-        </div>
 
       </div>
     </div>
