@@ -18,12 +18,6 @@ mysql:
   password: "YOUR_MYSQL_PASSWORD"
   database: "translation_db"
 
-admin:
-  username: "admin"
-  password: "YOUR_ADMIN_PASSWORD"
-  port: 15002
-  session_secret: "your-admin-secret-string"
-
 alipay:
   app_id: "YOUR_ALIPAY_APP_ID"
   private_key: |
