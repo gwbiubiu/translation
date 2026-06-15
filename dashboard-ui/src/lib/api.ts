@@ -31,7 +31,6 @@ export interface OrderStatus {
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, { credentials: 'include', ...options })
   if (res.status === 401) {
-    window.location.href = '/login'
     throw new Error('Unauthorized')
   }
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
