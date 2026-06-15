@@ -43,7 +43,7 @@ def init_db():
                         id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
                         openid      VARCHAR(64) UNIQUE NOT NULL,
                         nickname    VARCHAR(128) DEFAULT '',
-                        avatar_url  TEXT DEFAULT '',
+                        avatar_url  TEXT,
                         membership  VARCHAR(32) DEFAULT 'free',
                         created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4

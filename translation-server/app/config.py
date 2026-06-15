@@ -10,9 +10,10 @@ class AIConfig(BaseModel):
     model: str
 
 
-class WeChatConfig(BaseModel):
-    app_id: str = ""
-    app_secret: str = ""
+class GoogleConfig(BaseModel):
+    client_id: str = ""
+    client_secret: str = ""
+    redirect_uri: str = ""  # 留空则自动生成，建议显式配置
 
 
 class MySQLConfig(BaseModel):
@@ -27,7 +28,7 @@ class AppConfig(BaseModel):
     ai: AIConfig
     port: int = 5000
     session_secret: str = "change-me-please-use-a-random-string"
-    wechat: WeChatConfig = WeChatConfig()
+    google: GoogleConfig = GoogleConfig()
     mysql: MySQLConfig = MySQLConfig()
 
 

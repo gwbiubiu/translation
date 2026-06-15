@@ -6,9 +6,10 @@ ai:
   base_url: "https://aihubmix.com/v1"
   model: "claude-sonnet-4-5"
 
-wechat:
-  app_id: "YOUR_WECHAT_APP_ID"
-  app_secret: "YOUR_WECHAT_APP_SECRET"
+google:
+  client_id: "YOUR_GOOGLE_CLIENT_ID"
+  client_secret: "YOUR_GOOGLE_CLIENT_SECRET"
+  redirect_uri: "http://localhost:15001/auth/google/callback"  # 生产环境改为 https://yourdomain.com/auth/google/callback
 
 mysql:
   host: "127.0.0.1"
