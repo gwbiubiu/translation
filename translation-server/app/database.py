@@ -60,6 +60,29 @@ def init_db():
                         INDEX idx_user_time (user_id, created_at DESC)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
                 """)
+                # 新增 membership_expires_at（幂等，已存在则忽略）
+                try:
+                    cur.execute("""
+                        ALTER TABLE users
+                        ADD COLUMN membership_expires_at DATETIME NULL DEFAULT NULL
+                    """)
+                except Exception:
+                    pass  # 列已存在
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS orders (
+                        id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                        out_trade_no    VARCHAR(64) UNIQUE NOT NULL,
+                        user_id         BIGINT UNSIGNED NOT NULL,
+                        amount          DECIMAL(10,2) NOT NULL,
+                        months          TINYINT NOT NULL DEFAULT 1,
+                        status          VARCHAR(16) DEFAULT 'pending',
+                        alipay_trade_no VARCHAR(64) DEFAULT '',
+                        created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        paid_at         DATETIME NULL,
+                        INDEX idx_user (user_id),
+                        INDEX idx_out_trade_no (out_trade_no)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+                """)
             conn.commit()
 
         _db_available = True
@@ -128,6 +151,43 @@ def record_translation(
                 "(user_id, source_text, translated_text, source_lang, target_lang) "
                 "VALUES (%s, %s, %s, %s, %s)",
                 (user_id, source_text[:500], translated_text[:500], source_lang, target_lang),
+            )
+
+
+def create_order(user_id: int, out_trade_no: str, amount: float, months: int = 1) -> dict:
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO orders (out_trade_no, user_id, amount, months) VALUES (%s, %s, %s, %s)",
+                (out_trade_no, user_id, amount, months),
+            )
+            cur.execute("SELECT * FROM orders WHERE out_trade_no=%s", (out_trade_no,))
+            return cur.fetchone()
+
+
+def get_order(out_trade_no: str) -> dict | None:
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM orders WHERE out_trade_no=%s", (out_trade_no,))
+            return cur.fetchone()
+
+
+def update_order_paid(
+    out_trade_no: str,
+    alipay_trade_no: str,
+    user_id: int,
+    new_expiry,
+) -> None:
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE orders SET status='paid', alipay_trade_no=%s, paid_at=NOW() "
+                "WHERE out_trade_no=%s",
+                (alipay_trade_no, out_trade_no),
+            )
+            cur.execute(
+                "UPDATE users SET membership='pro', membership_expires_at=%s WHERE id=%s",
+                (new_expiry, user_id),
             )
 
 
