@@ -24,12 +24,21 @@ class MySQLConfig(BaseModel):
     database: str = "translation_db"
 
 
+class AlipayConfig(BaseModel):
+    app_id: str = ""
+    private_key: str = ""
+    public_key: str = ""
+    notify_url: str = ""
+    sandbox: bool = True
+
+
 class AppConfig(BaseModel):
     ai: AIConfig
     port: int = 5000
     session_secret: str = "change-me-please-use-a-random-string"
     google: GoogleConfig = GoogleConfig()
     mysql: MySQLConfig = MySQLConfig()
+    alipay: AlipayConfig = AlipayConfig()
 
 
 def load_config(path: str = "config.yaml") -> AppConfig:
