@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from functools import wraps
 
 from flask import Blueprint, jsonify, redirect, render_template, session
@@ -36,11 +37,20 @@ def me():
     user = get_user_by_id(session["user_id"])
     if not user:
         return jsonify({"error": "not found"}), 404
+
+    membership = user["membership"]
+    expires_at = user.get("membership_expires_at")
+    if membership == "pro" and expires_at:
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        if expires_at <= now:
+            membership = "free"
+
     return jsonify({
         "id": user["id"],
         "nickname": user["nickname"],
         "avatar_url": user["avatar_url"],
-        "membership": user["membership"],
+        "membership": membership,
+        "membership_expires_at": expires_at.isoformat() if expires_at else None,
     })
 
 
