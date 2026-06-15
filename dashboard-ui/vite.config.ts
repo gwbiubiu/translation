@@ -11,9 +11,9 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': 'http://127.0.0.1:15001',
-      '/auth': 'http://127.0.0.1:15001',
-      '/login': 'http://127.0.0.1:15001',
+      '/api':       'http://127.0.0.1:15001',
+      '/auth':      'http://127.0.0.1:15001',
+      '/translate': 'http://127.0.0.1:15001',
     },
   },
   build: {
