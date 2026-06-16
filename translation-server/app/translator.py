@@ -43,6 +43,73 @@ def _strip_code_block(text: str) -> str:
     return m.group(1).strip() if m else text
 
 
+_CALIBRATE_PROMPT = """You are a professional translator specializing in English-Chinese translation.
+
+You will be given:
+- source_text: the original text
+- draft_translation: an existing translation that may be inaccurate or unnatural
+- source_lang / target_lang: language codes ("en" or "zh")
+
+Your task: Provide a more accurate, natural, and contextually appropriate translation.
+Pay close attention to: idioms, technical jargon, tone, sentence structure, and cultural nuances.
+
+Respond with ONLY a valid JSON object, no markdown, no extra text:
+{
+  "calibrated": "<improved translation>",
+  "note": "<one sentence in Chinese explaining what was improved>"
+}"""
+
+
+def calibrate(text: str, draft: str, from_lang: str, to_lang: str) -> dict:
+    logger.info("校准请求 [%s→%s]，文本长度=%d", from_lang, to_lang, len(text))
+    user_msg = (
+        f"source_text: {text}\n"
+        f"draft_translation: {draft}\n"
+        f"source_lang: {from_lang}\n"
+        f"target_lang: {to_lang}"
+    )
+    response = _llm.invoke([
+        SystemMessage(content=_CALIBRATE_PROMPT),
+        HumanMessage(content=user_msg),
+    ])
+    raw = _strip_code_block(response.content)
+    logger.debug("校准响应: %s", raw[:300])
+    return json.loads(raw)
+
+
+_EXPLAIN_PROMPT = """You are a language expert helping learners understand vocabulary in context.
+
+You will receive:
+- word: a keyword extracted from the sentence
+- translation: its base translation
+- sentence: the original sentence where the word appears
+- from_lang: the source language ("en" or "zh")
+
+Your task: Write a concise, insightful contextual explanation in Chinese (2-3 sentences) that explains:
+1. What this word means specifically in this sentence
+2. Any nuances, connotations, or usage patterns worth noting
+
+Respond with ONLY a valid JSON object, no markdown, no extra text:
+{"explanation": "<Chinese explanation>"}"""
+
+
+def explain(word: str, translation: str, sentence: str, from_lang: str) -> dict:
+    logger.info("解释请求 word=%s from_lang=%s", word, from_lang)
+    user_msg = (
+        f"word: {word}\n"
+        f"translation: {translation}\n"
+        f"sentence: {sentence}\n"
+        f"from_lang: {from_lang}"
+    )
+    response = _llm.invoke([
+        SystemMessage(content=_EXPLAIN_PROMPT),
+        HumanMessage(content=user_msg),
+    ])
+    raw = _strip_code_block(response.content)
+    logger.debug("解释响应: %s", raw[:300])
+    return json.loads(raw)
+
+
 def translate(text: str) -> TranslationResponse:
     logger.info("翻译请求，文本长度=%d", len(text))
     response = _llm.invoke([

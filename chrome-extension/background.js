@@ -174,6 +174,26 @@ chrome.runtime.onMessage.addListener(function (msg, _sender, sendResponse) {
       .catch(function () { sendResponse({ phonetic: '', meanings: [] }); });
     return true;
   }
+  if (msg.type === 'wordexplain') {
+    chrome.storage.sync.get('apiBase', function (s) {
+      var apiBase = (s.apiBase || DEFAULT_API).replace(/\/$/, '');
+      fetch(apiBase + '/api/word-explain', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          word: msg.word,
+          translation: msg.translation,
+          sentence: msg.sentence,
+          from_lang: msg.from_lang,
+        }),
+      })
+        .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, data: d }; }); })
+        .then(function (r) { sendResponse(r); })
+        .catch(function (e) { sendResponse({ ok: false, data: { error: e.message } }); });
+    });
+    return true;
+  }
   if (msg.type === 'fetchaudio') {
     fetch(msg.url)
       .then(function (res) { return res.arrayBuffer(); })

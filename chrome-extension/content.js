@@ -15,6 +15,28 @@
     document.documentElement.appendChild(s);
   }
 
+  var DEFAULT_API = 'https://translation.gwbiubiu.com';
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function _explainError(msg) {
+    return '<span style="all:initial;font-size:11px;color:#ef4444;' +
+      'font-family:-apple-system,BlinkMacSystemFont,sans-serif;">' + escHtml(msg) + '</span>';
+  }
+
+  function _explainUpgrade() {
+    return '<div style="all:initial;display:flex !important;flex-direction:column;gap:4px;">' +
+      '<span style="all:initial;font-size:11px;color:#6b7280;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">此功能仅限 Pro 会员使用</span>' +
+      '<button class="explain-upgrade-link" style="all:initial;cursor:pointer;font-size:11px;color:#6366f1;' +
+      'font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-weight:600;' +
+      'background:none;border:none;padding:0;text-align:left;">→ 开通 Pro 会员</button>' +
+    '</div>';
+  }
+
   // ── Storage helper ─────────────────────────────────────────────────
 
   function saveItem(item, onSaved, onDuplicate) {
@@ -573,10 +595,103 @@
         }
       });
 
+      // AI explain button
+      var explainBtn = document.createElement('button');
+      explainBtn.style.cssText =
+        'all:initial;background:none;border:none;cursor:pointer;' +
+        'flex-shrink:0;padding:2px 4px;line-height:1;margin-top:1px;' +
+        'font-size:10px;font-weight:600;color:#6366f1;' +
+        'font-family:-apple-system,BlinkMacSystemFont,sans-serif;' +
+        'display:inline-flex !important;align-items:center;gap:2px;' +
+        'border-radius:4px;transition:background 0.12s;white-space:nowrap;';
+      explainBtn.innerHTML =
+        '<svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" style="display:block;pointer-events:none;flex-shrink:0">' +
+        '<path d="M12 2l1.09 3.26L16 6.27l-2.5 2.44.59 3.44L12 10.27l-2.09 1.88.59-3.44L8 6.27l2.91-.01L12 2z"/>' +
+        '<circle cx="12" cy="19" r="3"/></svg>' +
+        '解释';
+
+      explainBtn.addEventListener('mouseenter', function () {
+        explainBtn.style.background = 'rgba(99,102,241,0.08)';
+      });
+      explainBtn.addEventListener('mouseleave', function () {
+        explainBtn.style.background = 'none';
+      });
+
+      // Explanation panel
+      var explainPanel = document.createElement('div');
+      var PANEL_CSS =
+        'all:initial;display:block !important;' +
+        'margin-top:6px;padding:8px 10px;' +
+        'background:#f5f3ff;border-radius:6px;' +
+        'border-left:3px solid #818cf8;';
+      explainPanel.style.cssText = 'all:initial;display:none !important;';
+
+      function showPanel() { explainPanel.style.cssText = PANEL_CSS; }
+      function hidePanel() { explainPanel.style.cssText = 'all:initial;display:none !important;'; }
+
+      explainBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (explainPanel._visible) {
+          explainPanel._visible = false;
+          hidePanel();
+          return;
+        }
+        explainPanel._visible = true;
+        // Already has content — just show
+        if (explainPanel._loaded) {
+          showPanel();
+          return;
+        }
+        // Show loading state
+        showPanel();
+        explainPanel.innerHTML =
+          '<span style="all:initial;font-size:11px;color:#6b7280;' +
+          'font-family:-apple-system,BlinkMacSystemFont,sans-serif;">正在解释…</span>';
+
+        chrome.runtime.sendMessage({
+          type: 'wordexplain',
+          word: item.word,
+          translation: item.translation,
+          sentence: cardEl._origText || '',
+          from_lang: cardEl._langFrom || '',
+        }, function (resp) {
+          if (chrome.runtime.lastError || !resp) {
+            explainPanel.innerHTML = _explainError('网络错误');
+            return;
+          }
+          if (!resp.ok) {
+            if (resp.data && resp.data.error === 'pro_required') {
+              explainPanel.innerHTML = _explainUpgrade();
+              explainPanel.querySelector('.explain-upgrade-link').addEventListener('click', function () {
+                chrome.storage.sync.get('apiBase', function (s) {
+                  var base = (s.apiBase || DEFAULT_API).replace(/\/$/, '');
+                  window.open(base + '/dashboard', '_blank');
+                });
+              });
+            } else {
+              explainPanel.innerHTML = _explainError((resp.data && resp.data.error) || '请求失败');
+            }
+            return;
+          }
+          explainPanel._loaded = true;
+          var text = resp.data && resp.data.explanation ? resp.data.explanation : '无法获取解释';
+          explainPanel.innerHTML =
+            '<div style="all:initial;display:flex !important;gap:5px;align-items:flex-start;">' +
+              '<svg width="12" height="12" viewBox="0 0 24 24" fill="#818cf8" style="display:block;flex-shrink:0;margin-top:1px;pointer-events:none">' +
+              '<path d="M12 2l1.09 3.26L16 6.27l-2.5 2.44.59 3.44L12 10.27l-2.09 1.88.59-3.44L8 6.27l2.91-.01L12 2z"/>' +
+              '<circle cx="12" cy="19" r="3"/></svg>' +
+              '<span style="all:initial;font-size:11.5px;color:#374151;line-height:1.65;' +
+              'font-family:-apple-system,BlinkMacSystemFont,sans-serif;">' + escHtml(text) + '</span>' +
+            '</div>';
+        });
+      });
+
       mainLine.appendChild(wordChip);
       mainLine.appendChild(transEl);
+      mainLine.appendChild(explainBtn);
       mainLine.appendChild(starBtn);
       row.appendChild(mainLine);
+      row.appendChild(explainPanel);
 
       // Dict info area (phonetic + POS definitions) — English source only
       if (isEnSrc && /^[a-zA-Z\s'\-]+$/.test(item.word.trim())) {
