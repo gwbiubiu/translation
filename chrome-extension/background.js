@@ -203,6 +203,31 @@ chrome.runtime.onMessage.addListener(function (msg, _sender, sendResponse) {
       .catch(function () { sendResponse({ ok: false }); });
     return true;
   }
+  if (msg.type === 'tts') {
+    chrome.storage.sync.get('apiBase', function (s) {
+      var apiBase = (s.apiBase || DEFAULT_API).replace(/\/$/, '');
+      fetch(apiBase + '/api/tts', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: msg.text, lang: msg.lang }),
+      })
+        .then(function (res) {
+          if (!res.ok) {
+            return res.json().then(function (d) {
+              sendResponse({ ok: false, data: d });
+            });
+          }
+          return res.arrayBuffer().then(function (buf) {
+            sendResponse({ ok: true, data: Array.from(new Uint8Array(buf)) });
+          });
+        })
+        .catch(function (e) {
+          sendResponse({ ok: false, data: { error: e.message } });
+        });
+    });
+    return true;
+  }
 });
 
 chrome.runtime.onInstalled.addListener(function () {
