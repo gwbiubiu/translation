@@ -20,4 +20,6 @@ dependencies = [
 serve = "main:flask_app"
 
 [tool.uv]
-dev-dependencies = []
+dev-dependencies = [
+    "pytest>=9.1.1",
+]
