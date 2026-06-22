@@ -162,6 +162,43 @@ npm run build      # output → dist/
 
 ---
 
+## AI 框架规范
+
+translation-server 的所有 AI 功能统一使用以下技术栈：
+
+### 框架
+- **LangChain** — LLM 调用、Prompt 模板、链式处理（`langchain_openai.ChatOpenAI`）
+- **LangGraph** — 多步骤 Agent 编排、有状态工作流
+- **DeepAgents** — Agent 级别的任务拆解与调度
+
+### API 提供商
+- **AiHubMix**（OpenAI 兼容）— `base_url="https://aihubmix.com/v1"`
+  - 文本模型：Claude / GPT 系列
+  - TTS：`gpt-4o-mini-tts`，voice 可选 `coral` / `alloy` / `echo` 等
+
+### TTS 示例（Python）
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="<AIHUBMIX_API_KEY>",
+    base_url="https://aihubmix.com/v1",
+)
+
+with client.audio.speech.with_streaming_response.create(
+    model="gpt-4o-mini-tts",
+    voice="coral",
+    input="Today is a wonderful day to build something people love!",
+) as response:
+    response.stream_to_file("speech.mp3")
+```
+
+### 原则
+- 新 AI 功能必须通过 LangChain / LangGraph 封装，不直接裸调 HTTP
+- API Key 放在 `config.yaml` 的 `ai.api_key` 字段，不硬编码
+
+---
+
 ## chrome-extension
 
 Manifest V3 extension. After any file change, reload at `chrome://extensions`.
