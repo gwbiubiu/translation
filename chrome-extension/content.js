@@ -413,6 +413,7 @@
       card._langFrom = from;
       card._langTo = to;
       card._origText = pendingText;
+      card._bodyText = text;
 
       // ── Footer: copy button ──
       var footer = document.createElement('div');
@@ -474,6 +475,50 @@
         'max-height:260px;overflow-y:auto;background:#fafbfd;';
       card.appendChild(vocabDiv);
       card._vocabDiv = vocabDiv;
+
+      // ── Deep Learn button ──────────────────────────────────────────
+      var deepLearnBtn = document.createElement('button');
+      deepLearnBtn.style.cssText =
+        'all:initial;display:block !important;width:100%;' +
+        'padding:9px 16px;background:#f5f3ff;border:none;' +
+        'border-top:1px solid #ede9fe;cursor:pointer;' +
+        'font-size:11.5px;font-weight:600;color:#6366f1;' +
+        'font-family:-apple-system,BlinkMacSystemFont,sans-serif;' +
+        'text-align:center;letter-spacing:0.02em;' +
+        'transition:background 0.15s ease;';
+      deepLearnBtn.textContent = '✨ 深度学习';
+      deepLearnBtn.addEventListener('mouseenter', function () {
+        deepLearnBtn.style.background = '#ede9fe';
+      });
+      deepLearnBtn.addEventListener('mouseleave', function () {
+        deepLearnBtn.style.background = '#f5f3ff';
+      });
+      card.appendChild(deepLearnBtn);
+
+      // ── Deep Learn Panel ───────────────────────────────────────────
+      var deepLearnPanel = document.createElement('div');
+      deepLearnPanel.style.cssText = 'all:initial;display:none !important;';
+      card.appendChild(deepLearnPanel);
+      card._deepLearnPanel = deepLearnPanel;
+      card._deepLearnOpen = false;
+      card._deepLearnLoaded = false;
+
+      deepLearnBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (!card._deepLearnOpen) {
+          card._deepLearnOpen = true;
+          deepLearnPanel.style.cssText =
+            'all:initial;display:block !important;border-top:1px solid #ede9fe;';
+          if (!card._deepLearnLoaded) {
+            card._deepLearnLoaded = true;
+            _renderDeepLearnLoading(deepLearnPanel, card);
+            _loadDeepLearn(deepLearnPanel, card);
+          }
+        } else {
+          card._deepLearnOpen = false;
+          deepLearnPanel.style.cssText = 'all:initial;display:none !important;';
+        }
+      });
     }
 
     document.documentElement.appendChild(card);
@@ -809,5 +854,334 @@
     });
 
     el.style.display = 'block';
+  }
+
+  // ── Deep Learn helpers ─────────────────────────────────────────────
+
+  function _playTTS(text, lang, btn, originalLabel) {
+    btn.disabled = true;
+    btn.textContent = '▶ 加载中…';
+    chrome.runtime.sendMessage({ type: 'tts', text: text, lang: lang }, function (resp) {
+      btn.disabled = false;
+      btn.textContent = originalLabel;
+      if (!resp || !resp.ok) return;
+      try {
+        var buf = new Uint8Array(resp.data).buffer;
+        var ctx = new (window.AudioContext || window.webkitAudioContext)();
+        ctx.decodeAudioData(buf).then(function (decoded) {
+          var src = ctx.createBufferSource();
+          src.buffer = decoded;
+          src.connect(ctx.destination);
+          src.start(0);
+        });
+      } catch (ex) {}
+    });
+  }
+
+  function _makeSection(title) {
+    var sec = document.createElement('div');
+    sec.style.cssText =
+      'all:initial;display:block !important;padding:12px 14px;' +
+      'border-bottom:1px solid #f0f2f5;';
+
+    var hdr = document.createElement('div');
+    hdr.style.cssText =
+      'all:initial;display:flex !important;align-items:center;gap:6px;margin-bottom:8px;';
+
+    var bar = document.createElement('span');
+    bar.style.cssText =
+      'all:initial;display:inline-block !important;width:3px;height:11px;' +
+      'background:linear-gradient(to bottom,#818cf8,#4f46e5);border-radius:2px;flex-shrink:0;';
+
+    var titleEl = document.createElement('span');
+    titleEl.style.cssText =
+      'all:initial;font-size:10px;font-weight:700;color:#6b7280;' +
+      'font-family:-apple-system,BlinkMacSystemFont,sans-serif;' +
+      'text-transform:uppercase;letter-spacing:0.06em;';
+    titleEl.textContent = title;
+
+    hdr.appendChild(bar);
+    hdr.appendChild(titleEl);
+    sec.appendChild(hdr);
+    return sec;
+  }
+
+  function _renderDeepLearnLoading(panel, card) {
+    while (panel.firstChild) panel.removeChild(panel.firstChild);
+
+    // TTS section — renders immediately, no loading needed
+    var ttsSection = _makeSection('🔊 朗读');
+    var ttsRow = document.createElement('div');
+    ttsRow.style.cssText = 'all:initial;display:flex !important;gap:8px;flex-wrap:wrap;';
+
+    function _makePlayBtn(label) {
+      var btn = document.createElement('button');
+      btn.style.cssText =
+        'all:initial;display:inline-flex !important;align-items:center;gap:5px;' +
+        'border:1px solid #e5e7eb;background:#f9fafb;cursor:pointer;color:#6366f1;' +
+        'font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px;' +
+        'font-family:-apple-system,BlinkMacSystemFont,sans-serif;' +
+        'transition:background 0.15s ease;';
+      btn.textContent = label;
+      btn.addEventListener('mouseenter', function () { btn.style.background = '#ede9fe'; });
+      btn.addEventListener('mouseleave', function () { btn.style.background = '#f9fafb'; });
+      return btn;
+    }
+
+    var origBtn = _makePlayBtn('▶ 播放原文');
+    var transBtn = _makePlayBtn('▶ 播放译文');
+
+    origBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      _playTTS(card._origText || '', card._langFrom || 'en', origBtn, '▶ 播放原文');
+    });
+    transBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      _playTTS(card._bodyText || '', card._langTo || 'zh', transBtn, '▶ 播放译文');
+    });
+
+    ttsRow.appendChild(origBtn);
+    ttsRow.appendChild(transBtn);
+    ttsSection.appendChild(ttsRow);
+    panel.appendChild(ttsSection);
+
+    // Vocab enhance section — loading state
+    var vocabSection = _makeSection('💡 词汇强化');
+    var vocabLoading = document.createElement('span');
+    vocabLoading.style.cssText =
+      'all:initial;font-size:11px;color:#9ca3af;' +
+      'font-family:-apple-system,BlinkMacSystemFont,sans-serif;';
+    vocabLoading.textContent = '分析中…';
+    vocabSection.appendChild(vocabLoading);
+    panel.appendChild(vocabSection);
+    panel._vocabSection = vocabSection;
+
+    // Grammar section — loading state
+    var gramSection = _makeSection('📖 语法解析');
+    var gramLoading = document.createElement('span');
+    gramLoading.style.cssText =
+      'all:initial;font-size:11px;color:#9ca3af;' +
+      'font-family:-apple-system,BlinkMacSystemFont,sans-serif;';
+    gramLoading.textContent = '分析中…';
+    gramSection.appendChild(gramLoading);
+    panel.appendChild(gramSection);
+    panel._gramSection = gramSection;
+  }
+
+  function _loadDeepLearn(panel, card) {
+    chrome.storage.sync.get('apiBase', function (s) {
+      var apiBase = (s.apiBase || DEFAULT_API).replace(/\/$/, '');
+      fetch(apiBase + '/api/deep-learn', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: card._origText || '',
+          translated: card._bodyText || '',
+          from: card._langFrom || '',
+          to: card._langTo || '',
+        }),
+      })
+        .then(function (res) {
+          return res.json().then(function (d) { return { ok: res.ok, data: d }; });
+        })
+        .then(function (r) {
+          if (!r.ok) {
+            if (r.data && r.data.error === 'pro_required') {
+              _renderDeepLearnUpgrade(panel);
+            } else {
+              _renderDeepLearnError(panel, (r.data && r.data.error) || '请求失败');
+            }
+            return;
+          }
+          _fillVocabEnhance(panel._vocabSection, r.data.vocab_enhancement || []);
+          _fillGrammar(panel._gramSection, r.data.grammar || {});
+        })
+        .catch(function () {
+          _renderDeepLearnError(panel, '网络错误，请稍后重试');
+        });
+    });
+  }
+
+  function _fillVocabEnhance(section, items) {
+    var hdr = section.firstChild;
+    while (section.lastChild !== hdr) section.removeChild(section.lastChild);
+
+    if (!items.length) {
+      var empty = document.createElement('span');
+      empty.style.cssText =
+        'all:initial;font-size:11px;color:#9ca3af;' +
+        'font-family:-apple-system,BlinkMacSystemFont,sans-serif;';
+      empty.textContent = '未提取到关键词汇';
+      section.appendChild(empty);
+      return;
+    }
+
+    items.forEach(function (item) {
+      var block = document.createElement('div');
+      block.style.cssText = 'all:initial;display:block !important;margin-bottom:10px;';
+
+      var wordLine = document.createElement('div');
+      wordLine.style.cssText =
+        'all:initial;display:flex !important;align-items:baseline;gap:8px;margin-bottom:4px;';
+
+      var chip = document.createElement('span');
+      chip.style.cssText =
+        'all:initial;display:inline-block !important;background:#eff6ff;color:#3730a3;' +
+        'font-size:11.5px;font-weight:700;padding:1px 8px;border-radius:20px;' +
+        'font-family:-apple-system,BlinkMacSystemFont,sans-serif;border:1px solid #c7d2fe;';
+      chip.textContent = item.word || '';
+
+      var synonyms = document.createElement('span');
+      synonyms.style.cssText =
+        'all:initial;font-size:10.5px;color:#818cf8;' +
+        'font-family:-apple-system,BlinkMacSystemFont,sans-serif;';
+      synonyms.textContent = (item.synonyms || []).join(' · ');
+
+      wordLine.appendChild(chip);
+      wordLine.appendChild(synonyms);
+      block.appendChild(wordLine);
+
+      if (item.root) {
+        var root = document.createElement('div');
+        root.style.cssText =
+          'all:initial;font-size:10.5px;color:#6b7280;margin-bottom:3px;' +
+          'font-family:-apple-system,BlinkMacSystemFont,sans-serif;';
+        root.textContent = '📌 ' + item.root;
+        block.appendChild(root);
+      }
+
+      (item.examples || []).forEach(function (ex) {
+        var exEl = document.createElement('div');
+        exEl.style.cssText =
+          'all:initial;font-size:10.5px;color:#374151;line-height:1.6;' +
+          'font-family:-apple-system,BlinkMacSystemFont,sans-serif;' +
+          'padding-left:8px;border-left:2px solid #c7d2fe;margin-top:2px;';
+        exEl.textContent = ex;
+        block.appendChild(exEl);
+      });
+
+      section.appendChild(block);
+    });
+  }
+
+  function _fillGrammar(section, grammar) {
+    var hdr = section.firstChild;
+    while (section.lastChild !== hdr) section.removeChild(section.lastChild);
+
+    if (!grammar.structure) {
+      var empty = document.createElement('span');
+      empty.style.cssText =
+        'all:initial;font-size:11px;color:#9ca3af;' +
+        'font-family:-apple-system,BlinkMacSystemFont,sans-serif;';
+      empty.textContent = '未获取到语法信息';
+      section.appendChild(empty);
+      return;
+    }
+
+    var structEl = document.createElement('div');
+    structEl.style.cssText =
+      'all:initial;font-size:11px;font-weight:600;color:#4338ca;margin-bottom:8px;' +
+      'font-family:-apple-system,BlinkMacSystemFont,sans-serif;';
+    structEl.textContent = grammar.structure;
+    section.appendChild(structEl);
+
+    if (grammar.breakdown && grammar.breakdown.length) {
+      var bdRow = document.createElement('div');
+      bdRow.style.cssText =
+        'all:initial;display:flex !important;flex-wrap:wrap;gap:6px;margin-bottom:8px;';
+
+      grammar.breakdown.forEach(function (part) {
+        var chunk = document.createElement('div');
+        chunk.style.cssText =
+          'all:initial;display:inline-flex !important;flex-direction:column;' +
+          'align-items:center;gap:2px;';
+
+        var textEl = document.createElement('span');
+        textEl.style.cssText =
+          'all:initial;font-size:11px;color:#111827;font-weight:500;' +
+          'font-family:-apple-system,BlinkMacSystemFont,sans-serif;' +
+          'background:#f0f9ff;padding:2px 6px;border-radius:4px;white-space:nowrap;';
+        textEl.textContent = part.text || '';
+
+        var roleEl = document.createElement('span');
+        roleEl.style.cssText =
+          'all:initial;font-size:9.5px;color:#818cf8;font-weight:600;' +
+          'font-family:-apple-system,BlinkMacSystemFont,sans-serif;';
+        roleEl.textContent = part.role || '';
+
+        chunk.appendChild(textEl);
+        chunk.appendChild(roleEl);
+        bdRow.appendChild(chunk);
+      });
+      section.appendChild(bdRow);
+    }
+
+    if (grammar.note) {
+      var noteEl = document.createElement('div');
+      noteEl.style.cssText =
+        'all:initial;font-size:10.5px;color:#6b7280;line-height:1.6;' +
+        'font-family:-apple-system,BlinkMacSystemFont,sans-serif;';
+      noteEl.textContent = '💬 ' + grammar.note;
+      section.appendChild(noteEl);
+    }
+  }
+
+  function _renderDeepLearnUpgrade(panel) {
+    while (panel.firstChild) panel.removeChild(panel.firstChild);
+    var wrap = document.createElement('div');
+    wrap.style.cssText =
+      'all:initial;display:flex !important;flex-direction:column;gap:6px;' +
+      'padding:14px 16px;align-items:flex-start;';
+
+    var msg = document.createElement('span');
+    msg.style.cssText =
+      'all:initial;font-size:12px;color:#6b7280;' +
+      'font-family:-apple-system,BlinkMacSystemFont,sans-serif;';
+    msg.textContent = '深度学习功能仅限 Pro 会员使用';
+
+    var link = document.createElement('button');
+    link.style.cssText =
+      'all:initial;cursor:pointer;font-size:12px;color:#6366f1;font-weight:600;' +
+      'font-family:-apple-system,BlinkMacSystemFont,sans-serif;' +
+      'background:none;border:none;padding:0;';
+    link.textContent = '→ 开通 Pro 会员';
+    link.addEventListener('click', function () {
+      chrome.storage.sync.get('apiBase', function (s) {
+        var base = (s.apiBase || DEFAULT_API).replace(/\/$/, '');
+        window.open(base + '/dashboard', '_blank');
+      });
+    });
+
+    wrap.appendChild(msg);
+    wrap.appendChild(link);
+    panel.appendChild(wrap);
+  }
+
+  function _renderDeepLearnError(panel, message) {
+    if (panel._vocabSection) {
+      var hdrV = panel._vocabSection.firstChild;
+      while (panel._vocabSection.lastChild !== hdrV) {
+        panel._vocabSection.removeChild(panel._vocabSection.lastChild);
+      }
+      var errV = document.createElement('span');
+      errV.style.cssText =
+        'all:initial;font-size:11px;color:#ef4444;' +
+        'font-family:-apple-system,BlinkMacSystemFont,sans-serif;';
+      errV.textContent = message;
+      panel._vocabSection.appendChild(errV);
+    }
+    if (panel._gramSection) {
+      var hdrG = panel._gramSection.firstChild;
+      while (panel._gramSection.lastChild !== hdrG) {
+        panel._gramSection.removeChild(panel._gramSection.lastChild);
+      }
+      var errG = document.createElement('span');
+      errG.style.cssText =
+        'all:initial;font-size:11px;color:#ef4444;' +
+        'font-family:-apple-system,BlinkMacSystemFont,sans-serif;';
+      errG.textContent = message;
+      panel._gramSection.appendChild(errG);
+    }
   }
 })();
